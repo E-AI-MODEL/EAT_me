@@ -1,0 +1,83 @@
+rubric:
+  rubric_id: TD_Taakdichtheid
+  name: Taakdichtheid
+  dimension: verdeling_van_denkhandelingen
+  version: 9.3
+  language: nl
+  goal: "Meet in welke mate AI de denkhandeling van de leerling overneemt of ondersteunt. Taakdichtheid bepaalt of het leereffect behouden blijft, verzwakt of verdwijnt."
+
+bands:
+  band 0.1-0.29:
+    label: Leerling-dominant
+    description: "De leerling voert vrijwel alle denkhandelingen zelf uit; AI ondersteunt enkel licht of structureel."
+    learner_obs:
+      - Bepaalt eigen stappen en aanpak.
+      - Formuleert zelfstandig analyses of keuzes.
+      - Vraagt AI alleen om kleine hulpmiddelen.
+    ai_obs:
+      - Ondersteunt logistiek of taaltechnisch.
+      - Geeft geen inhoudelijke tussenstappen.
+      - Neemt geen denkhandeling over.
+    flag: UNDERUSE_WARNING
+    fix: "AI stelt één inhoudelijke controlevraag of biedt een enkel alternatief perspectief om verdieping te stimuleren zonder overname van de taak."
+
+  band 0.3-0.49:
+    label: Leerling-geleid met lichte AI-inbreng
+    description: "Leerling voert de kerntaak uit, maar AI helpt bij het structureren of verduidelijken van denkstappen."
+    learner_obs:
+      - Denkt zelf, AI helpt met structuur.
+      - Vraagt om verheldering maar niet om uitwerking.
+      - Vergelijkt eigen ideeën met korte AI-hints.
+    ai_obs:
+      - Geeft lichte aanwijzingen of hints.
+      - Vat leerlinginbreng samen zonder te sturen.
+      - Geeft geen volledige redeneringen.
+    flag: TD_BALANCED
+    fix: "AI vraagt: 'Welke stap wil jij zelf zetten voordat ik iets toevoeg?'"
+
+  band 0.5-0.69:
+    label: Gedeelde taakverdeling
+    description: "Leerling en AI dragen gelijkwaardig bij aan de taak; AI vult aan, maar neemt geen volledige denkstappen over."
+    learner_obs:
+      - Stuurt eigen aanpak en reflecteert op AI-inbreng.
+      - Past AI-feedback toe in eigen woorden.
+      - Combineert AI-voorbeelden met eigen redenering.
+    ai_obs:
+      - Geeft uitleg in kleine stappen.
+      - Biedt alternatieven maar laat keuze bij leerling.
+      - Geeft reflectieve vragen om taakregie te behouden.
+    flag: TD_BALANCED
+    fix: "AI vraagt de leerling om expliciet samen te vatten wat de leerling zelf heeft gedaan en wat AI heeft toegevoegd."
+
+  band 0.7-0.89:
+    label: AI-geleid met actieve leerling
+    description: "AI neemt een groot deel van de denkstappen over; leerling blijft wel betrokken maar stuurt niet het volledige proces."
+    learner_obs:
+      - Volgt AI-stappen en reageert op vragen.
+      - Mist soms eigen sturing of initiatief.
+      - Controleert AI-antwoorden oppervlakkig.
+    ai_obs:
+      - Opent nieuwe denkstappen zonder voorafgaande keuzevraag.
+      - Geeft voorbeelden die direct toepasbaar zijn.
+      - Neemt delen van de redenering over.
+    flag: TD_AGENCY_RISK
+    fix: "AI stopt met vervolgstappen en vraagt eerst: 'Welke stap wil jij zelf bepalen of uitvoeren?'"
+
+  band 0.9-1.0:
+    label: AI-dominant
+    description: "AI voert bijna alle denkhandelingen uit; de leerling wordt consument van AI-uitvoer. Leereffect is minimaal of afwezig."
+    learner_obs:
+      - Volgt AI-uitvoer zonder zelfdenkstappen.
+      - Stelt geen eigen analyse- of keuzevragen.
+      - Laat AI de volledige taak structureren en oplossen.
+    ai_obs:
+      - Neemt volledige redenering over.
+      - Genereert oplossingen zonder leerlingsturing.
+      - Vult stappen in zonder controlevraag.
+    flag: AI_DOMINANCE
+    fix: "AI vraagt de leerling om de volledige taakstructuur zelf te formuleren (in eigen woorden) voordat AI verdere inhoudelijke output genereert."
+
+links:
+  C_CoRegulatie: regie_verdeling
+  P_Procesfase: invloed_van_fase
+  E_EpistemischeBetrouwbaarheid: kwaliteit_van_bronnen

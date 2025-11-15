@@ -1,0 +1,81 @@
+rubric:
+  rubric_id: C_CoRegulatie
+  name: Co-regulatie
+  dimension: regieverdeling
+  version: 9.3
+  language: nl
+  goal: "Meet de verdeling van regie over het leerproces tussen leerling en AI: wie initieert, beslist en legitimeert."
+
+bands:
+  band 0.1-0.29:
+    label: AI-monoloog
+    description: "AI voert het gesprek en de denkstappen vrijwel volledig; leerling volgt passief."
+    learner_obs:
+      - Wacht passief op AI-prompt.
+      - Herhaalt letterlijk AI-zinnen.
+      - Neemt geen eigen beslissingen.
+    ai_obs:
+      - Start elke stap zelf.
+      - Geeft geen keuze-opties.
+      - Verklaart eigen keuzes niet.
+    flag: AI_DOMINANCE
+    fix: "AI laat de leerling drie opties overwegen en vraagt de leerling om de keuze in één zin te motiveren voordat de volgende stap wordt gezet."
+
+  band 0.3-0.49:
+    label: AI-geleid
+    description: "AI bepaalt de koers; leerling reageert vooral bevestigend zonder eigen sturing."
+    learner_obs:
+      - Antwoordt kort en bevestigt AI-beslissingen zonder tegenvoorstel.
+      - Neemt geen initiatief tot verandering.
+    ai_obs:
+      - Bepaalt volgorde van taken.
+      - Geeft beperkte uitleg.
+      - Nodigt niet uit tot keuze of reflectie.
+    flag: TD_AGENCY_RISK
+    fix: "AI biedt twee inhoudelijke opties, vraagt de leerling expliciet te kiezen en in één zin te verwoorden waarom die keuze wordt gemaakt."
+
+  band 0.5-0.69:
+    label: Gedeelde start
+    description: "Leerling neemt eerste beslissingen, maar leunt nog zichtbaar op bevestiging van AI."
+    learner_obs:
+      - Neemt enkele beslissingen.
+      - Vraagt expliciet om bevestiging van AI.
+      - Toont eerste tekenen van eigen regie.
+    ai_obs:
+      - Start de dialoog met een open vraag.
+      - Laat de leerling kleine keuzes maken.
+      - Geeft korte toelichting bij AI-voorstellen.
+    flag: TD_BALANCED
+    fix: "AI vraagt wie de volgende stap bepaalt en waarom, voordat deze stap wordt gezet."
+
+  band 0.7-0.89:
+    label: Gedeelde regie
+    description: "Leerling en AI sturen het proces in dialoog; leerling legitimeert eigen keuzes."
+    learner_obs:
+      - Stelt eigen vragen aan AI.
+      - Verantwoordt gemaakte keuzes.
+      - Stuurt actief het verloop van het gesprek.
+    ai_obs:
+      - Geeft alternatieven of tegenvoorbeelden.
+      - Vraagt de leerling om uit te leggen waarom een keuze is gemaakt.
+      - Ondersteunt de redenering zonder deze over te nemen.
+    flag: TD_BALANCED
+    fix: "AI vraagt om korte reflectie: wat heeft de leerling zelf gedaan en wat heeft AI gedaan in deze stap?"
+
+  band 0.9-1.0:
+    label: Leerling-geankerd
+    description: "Regie ligt structureel bij de leerling; AI fungeert als klankbord."
+    learner_obs:
+      - Stuurt volledig de leerstappen.
+      - Reflecteert spontaan op AI-suggesties.
+      - Gebruikt AI enkel als klankbord.
+    ai_obs:
+      - Reageert alleen op verzoek.
+      - Geeft bevestiging of controlevragen.
+      - Neemt geen nieuwe beslissingen over.
+    flag: UNDERUSE_WARNING
+    fix: "AI stelt één verdiepende controlevraag of biedt een alternatief perspectief voordat de sessie sluit, om transfer en verdieping te waarborgen."
+
+links:
+  TD_Taakdichtheid: kwantitatieve_taakverdeling
+  P_Procesfase: leerfase_context

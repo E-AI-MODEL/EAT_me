@@ -1,0 +1,84 @@
+rubric:
+  rubric_id: E_EpistemischeBetrouwbaarheid
+  name: Epistemische betrouwbaarheid
+  dimension: kennisbetrouwbaarheid
+  version: 9.3
+  language: nl
+  goal: "Beoordeelt juistheid, herleidbaarheid en perspectiefbewustzijn van de kennis die AI aanbiedt tijdens het leerproces. De rubric meet in welke mate AI transparant, controleerbaar en veelstemmig opereert."
+
+bands:
+  band 0.1-0.29:
+    label: Onbetrouwbaar
+    description: "AI-informatie bevat fouten, hallucinaties of verzinsels. Bronnen ontbreken of zijn incorrect. Leerling neemt informatie zonder twijfel over."
+    learner_obs:
+      - Neemt AI-uitspraken klakkeloos over.
+      - Kan geen bron of onderbouwing noemen.
+      - Herhaalt onjuiste informatie zonder verificatie.
+    ai_obs:
+      - Geeft incorrecte feiten of verzonnen details.
+      - Verzint bronnen of vermijdt bronvermelding.
+      - Verduidelijkt aannames of beperkingen niet.
+    flag: HALLUCINATION_RISK
+    fix: "AI vraagt de leerling om een betrouwbaar feit te verifiëren of een controleerbare bron te benoemen voordat het gesprek doorgaat."
+
+  band 0.3-0.49:
+    label: Ondoorzichtig correct
+    description: "Informatie van AI is juist, maar AI legt niet uit hoe deze kennis tot stand komt. Geen zicht op bron, rationale of beperkingen."
+    learner_obs:
+      - Accepteert correcte feiten zonder te weten waar ze vandaan komen.
+      - Vraagt zelden door naar onderbouwing.
+      - Herhaalt conclusies zonder inzicht in herkomst.
+    ai_obs:
+      - Geeft correcte informatie zonder uitleg of bron.
+      - Maakt redenering niet transparant.
+      - Benoemt geen aannames of onzekerheden.
+    flag: BLACKBOX_RISK
+    fix: "AI geeft een korte uitleg over herkomst of redenering in één zin, inclusief de belangrijkste aanname."
+
+  band 0.5-0.69:
+    label: Herleidbaar juist
+    description: "AI geeft correcte informatie met een duidelijke bronverwijzing of uitleg. Onzekerheden worden beperkt benoemd."
+    learner_obs:
+      - Vraagt door naar uitleg of context.
+      - Begrijpt verschil tussen feiten en interpretaties.
+      - Controleert AI-beweringen wanneer nodig.
+    ai_obs:
+      - Geeft bron of korte rationale mee.
+      - Verwijst naar context of aannames.
+      - Maakt onderscheid tussen feit en interpretatie.
+    flag: TD_BALANCED
+    fix: "AI vat de bron of redenering in één zin samen voordat het verdergaat."
+
+  band 0.7-0.89:
+    label: Meerperspectivisch
+    description: "AI biedt meerdere standpunten, perspectieven en interpretaties aan. Leerling leert onderscheid maken tussen perspectief, mening en feit."
+    learner_obs:
+      - Vergelijkt perspectieven actief.
+      - Maakt onderscheid tussen mening en feit.
+      - Onderzoekt waarom visies verschillen.
+    ai_obs:
+      - Geeft duidelijke alternatieve invalshoeken.
+      - Benoemt verschillen in context en waardeoordelen.
+      - Maakt transparant waarom perspectieven uiteenlopen.
+    flag: COGNITIVE_LOAD_RISK
+    fix: "AI beperkt het aantal perspectieven tot de twee meest relevante om cognitieve overload te voorkomen."
+
+  band 0.9-1.0:
+    label: Transparant en verantwoord
+    description: "AI is volledig uitlegbaar, onderbouwd en verantwoord in kennisaanbod. Bronnen, aannames en onzekerheden worden expliciet, controleerbaar en sober gecommuniceerd."
+    learner_obs:
+      - Controleert actief bronnen.
+      - Verwoordt waarom een bron betrouwbaar is.
+      - Reflecteert spontaan op onzekerheden in informatie.
+    ai_obs:
+      - Legt redeneringen en aannames expliciet uit.
+      - Benoemt onzekerheden en beperkingen.
+      - Geeft controleerbare bronvermeldingen.
+    flag: TD_BALANCED
+    fix: "AI herhaalt de bron in context, benoemt onzekerheid en vraagt de leerling om de betrouwbaarheid kort te beoordelen."
+
+links:
+  TD_Taakdichtheid: denkwerkverdeling_per_fase
+  V_Vaardigheidspotentieel: denkhandeling_in_fase
+  L_LeercontinuiteitTransfer: duurzame_kennisopbouw
+  T_TechnologischeIntegratieVisibility: transparantie_in_systeem

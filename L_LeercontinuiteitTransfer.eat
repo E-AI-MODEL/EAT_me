@@ -1,0 +1,84 @@
+rubric:
+  rubric_id: L_LeercontinuiteitTransfer
+  name: Leercontinuïteit & transfer
+  dimension: duurzame_kennisontwikkeling
+  version: 9.3
+  language: nl
+  goal: "Meet of AI leerstappen verbindt, inzichten duurzaam maakt en transfer naar nieuwe contexten ondersteunt. Richt zich op samenhang, hergebruik, verdieping en langetermijnbegrip."
+
+bands:
+  band 0.1-0.29:
+    label: Fragmentarisch
+    description: "Er is geen samenhang tussen leerstappen. AI en leerling verliezen continuïteit; inzichten verdwijnen zodra context verandert."
+    learner_obs:
+      - Vergeet eerder gemaakte stappen.
+      - Kan verband niet leggen tussen nieuwe en oude input.
+      - Gebruikt inzichten niet opnieuw.
+    ai_obs:
+      - Verwijst niet naar eerdere bijdragen van de leerling.
+      - Behandelt elke vraag als een nieuw onderwerp.
+      - Maakt geen koppeling tussen stappen of thema’s.
+    flag: LOSS_RISK
+    fix: "AI haalt één eerder punt van de leerling terug en vraagt hoe dit relevant is voor de huidige stap."
+
+  band 0.3-0.49:
+    label: Gerichte herhaling
+    description: "AI herinnert losse eerdere inzichten, maar zonder ze te verbinden tot één geheel. Continuïteit is aanwezig, maar zwak."
+    learner_obs:
+      - Herhaalt geleerde onderdelen zonder structuur.
+      - Herkent eerdere inhoud maar zonder toepassing.
+      - Verbindt stappen alleen wanneer AI dat expliciet doet.
+    ai_obs:
+      - Verwijst incidenteel naar eerder genoemde begrippen.
+      - Herhaalt kernpunten zonder diepere koppeling.
+      - Stimuleert herkenning maar niet duurzame integratie.
+    flag: UNDERUSE_WARNING
+    fix: "AI laat de leerling één eerder inzicht koppelen aan een concrete nieuwe stap ('Hoe sluit dit aan op…?')."
+
+  band 0.5-0.69:
+    label: Samenhangend begrip
+    description: "AI verbindt inzichten binnen dezelfde opdracht. Leerling gebruikt eerdere stappen en past ze herhaald toe."
+    learner_obs:
+      - Gebruikt eerder inzicht om nieuwe stappen te maken.
+      - Begrijpt waarom een eerdere keuze relevant is.
+      - Herhaalt concepten in eigen woorden in dezelfde context.
+    ai_obs:
+      - Verbindt kernbegrippen binnen één taak.
+      - Vat cruciale stappen gestructureerd samen.
+      - Maakt verbanden zichtbaar tussen eerdere en huidige input.
+    flag: TD_BALANCED
+    fix: "AI vraagt: 'Welke eerdere stap helpt je nu het meest?' en laat de leerling dat expliciet maken."
+
+  band 0.7-0.89:
+    label: Transfer binnen domein
+    description: "AI helpt inzichten toe te passen in nieuwe, maar verwante situaties. Leerling toont hergebruik en aanpassing van aanpak."
+    learner_obs:
+      - Past kennis toe in varianten van dezelfde taak.
+      - Vergelijkt eerdere en nieuwe contexten.
+      - Past strategie aan op basis van eerdere ervaringen.
+    ai_obs:
+      - Biedt variaties op de oorspronkelijke taak.
+      - Legt overeenkomsten en verschillen uit.
+      - Vraagt de leerling expliciet naar aanpassingen per context.
+    flag: SHALLOW_TRANSFER
+    fix: "AI vraagt de leerling om de belangrijkste overeenkomst én het belangrijkste verschil tussen context A en B te benoemen."
+
+  band 0.9-1.0:
+    label: Duurzame transfer
+    description: "Leerling en AI verbinden inzichten over domeinen heen. Leerling gebruikt eerder begrip om nieuwe, onbekende situaties te analyseren."
+    learner_obs:
+      - Maakt overstap naar nieuwe domeinen autonoom.
+      - Gebruikt concepten flexibel en creatief.
+      - Legt relaties tussen vakken, projecten of realistische situaties.
+    ai_obs:
+      - Faciliteert domeinoverstijgende toepassing.
+      - Verwijst naar eerdere sessies of concepten waar dit relevant is.
+      - Stimuleert diepe, duurzame integratie van kennis.
+    flag: TD_BALANCED
+    fix: "AI vraagt: 'Hoe zou je dit alsnog kunnen toepassen in een totaal ander vak of een realistische situatie?' en koppelt terug naar eerdere inzichten."
+
+links:
+  V_Vaardigheidspotentieel: denkbewegingen
+  P_Procesfase: fase_impact_op_transfer
+  T_TechnologischeIntegratieVisibility: transparantie_over_context
+  E_EpistemischeBetrouwbaarheid: bronkwaliteit_en_consistentie

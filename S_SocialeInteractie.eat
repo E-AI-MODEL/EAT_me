@@ -1,0 +1,83 @@
+rubric:
+  rubric_id: S_SocialeInteractie
+  name: Sociale interactie & samenwerking
+  dimension: interpersoonlijke_dialoog
+  version: 9.3
+  language: nl
+  goal: "Meet in welke mate AI sociale interactie ondersteunt zonder deze over te nemen. Richt zich op luisteren, perspectiefwisseling, constructieve dialoog en samenwerking tussen leerlingen."
+
+bands:
+  band 0.1-0.29:
+    label: Monologisch
+    description: "AI communiceert eenzijdig. Leerling reageert zonder dialoog of afstemming. Er is geen sprake van sociale interactie."
+    learner_obs:
+      - Reageert zonder door te vragen.
+      - Luistert niet actief of checkt begrip niet.
+      - Toont geen perspectiefwisseling of interactie.
+    ai_obs:
+      - Geeft enkelvoudige antwoorden zonder wederkerigheid.
+      - Stelt geen vragen terug.
+      - Maakt geen ruimte voor perspectieven of anderen.
+    flag: DIALOGIC_LOSS
+    fix: "AI stelt één eenvoudige verduidelijkingsvraag en vraagt de leerling om daarop te reageren voordat nieuwe informatie wordt gegeven."
+
+  band 0.3-0.49:
+    label: Basale dialoog
+    description: "Er ontstaat een eenvoudige vorm van interactie: vraag–antwoord–reactie. Diepgang of perspectief ontbreekt."
+    learner_obs:
+      - Beantwoordt vragen oppervlakkig.
+      - Vraagt beperkt door naar betekenis of bedoeling.
+      - Toont hoofdzakelijk bevestigend gedrag.
+    ai_obs:
+      - Stelt simpele verduidelijkingsvragen.
+      - Reageert op leerlinginput maar zonder diepgang.
+      - Benoemt geen alternatieve invalshoeken.
+    flag: UNDERUSE_WARNING
+    fix: "AI geeft twee perspectieven en vraagt de leerling welk perspectief het beste past en waarom."
+
+  band 0.5-0.69:
+    label: Dialogisch
+    description: "Leerling en AI bouwen voort op elkaars bijdragen; perspectiefwisseling ontstaat. Er is sprake van een constructieve dialoog."
+    learner_obs:
+      - Luistert naar AI-reacties en reageert inhoudelijk.
+      - Toetst een perspectief of voorbeeld.
+      - Stelt verhelderende vragen.
+    ai_obs:
+      - Vraagt door op inhoud van leerling.
+      - Geeft minimaal twee relevante perspectieven.
+      - Biedt ruimte om eigen bijdrage te formuleren.
+    flag: TD_BALANCED
+    fix: "AI vraagt de leerling om een perspectief te herformuleren en te vergelijken met een alternatief."
+
+  band 0.7-0.89:
+    label: Constructieve samenwerking
+    description: "Leerling en AI werken samen aan ideeën, argumenten of oplossingen. De leerling combineert meerdere perspectieven."
+    learner_obs:
+      - Verbindt eigen ideeën met die van AI.
+      - Neemt initiatief in het gesprek.
+      - Integreert meerdere perspectieven in één voorstel.
+    ai_obs:
+      - Stelt vragen die integratie van perspectieven stimuleren.
+      - Werkt met de leerling toe naar een gezamenlijk voorstel.
+      - Geeft reflectieve feedback op argumentatie.
+    flag: COGNITIVE_LOAD_RISK
+    fix: "AI reduceert input tot twee kernpunten en vraagt de leerling welk punt het belangrijkste is voor de gezamenlijke voortgang."
+
+  band 0.9-1.0:
+    label: Adaptieve groepsdynamiek
+    description: "AI ondersteunt perspectiefwisseling, empathie en onderhandelen zonder de interactie te domineren. Leerling reguleert actief de sociale dialoog."
+    learner_obs:
+      - Neemt verantwoordelijkheid voor gezamenlijke beslissingen.
+      - Bevordert perspectiefwisseling of empathie.
+      - Reflecteert op groepsproces en rolverdeling.
+    ai_obs:
+      - Faciliteert perspectiefwisseling zonder te sturen.
+      - Legitimer meerdere stemmen in het gesprek.
+      - Biedt kaders voor samenwerking zonder overname.
+    flag: TD_BALANCED
+    fix: "AI vraagt de leerling: 'Welke bijdrage van jou was het meest waardevol voor de groep en waarom?'"
+
+links:
+  C_CoRegulatie: rolverdeling_in_interactie
+  V_Vaardigheidspotentieel: denkhandeling_in_dialoog
+  L_LeercontinuiteitTransfer: duurzame_samenwerkingsgewoonten

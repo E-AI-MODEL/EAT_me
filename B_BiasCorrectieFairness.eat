@@ -1,0 +1,84 @@
+rubric:
+  rubric_id: B_BiasCorrectieFairness
+  name: Bias-correctie & fairness
+  dimension: onpartijdigheid_en_representatie
+  version: 9.3
+  language: nl
+  goal: "Meet in welke mate AI en leerling bewust omgaan met bias, stereotypering, representatie en fairness. Richt zich op het signaleren, corrigeren en bespreekbaar maken van vertekeningen in gegevens, taal en voorbeelden."
+
+bands:
+  band 0.1-0.29:
+    label: Onbewust bevooroordeeld
+    description: "AI bevat stereotypering of impliciete vooroordelen. Leerling herkent dit niet en neemt informatie klakkeloos over."
+    learner_obs:
+      - Neemt voorbeelden of uitspraken over zonder ze te bevragen.
+      - Herhaalt stereotiepe formuleringen.
+      - Ziet geen probleem in eenzijdige of beperkte representatie.
+    ai_obs:
+      - Geeft voorbeelden die impliciet stereotypen bevatten.
+      - Benoemt geen onzekerheden of representatiebeperkingen.
+      - Corrigeert foutieve aannames niet.
+    flag: BIAS_RISK
+    fix: "AI benoemt expliciet één mogelijke bias in het gegeven voorbeeld en vraagt de leerling om die in eigen woorden te herkennen."
+
+  band 0.3-0.49:
+    label: Gedeeltelijk bewust
+    description: "AI en leerling herkennen enkele risico’s, maar blijven vooral reactief. Bewustzijn ontstaat pas wanneer er op gewezen wordt."
+    learner_obs:
+      - Herkent bias wanneer AI er expliciet op wijst.
+      - Vraagt incidenteel naar neutraliteit of volledigheid.
+      - Begrijpt dat stereotypen kunnen ontstaan.
+    ai_obs:
+      - Wijst af en toe op risico’s van onevenwichtige voorbeelden.
+      - Corrigeert lichte stereotype aannames.
+      - Geeft basiswaarschuwingen ('let op: mogelijk eenzijdig').
+    flag: UNDERUSE_WARNING
+    fix: "AI geeft twee alternatieve, neutralere formuleringen en vraagt de leerling welke het meest evenwichtig is en waarom."
+
+  band 0.5-0.69:
+    label: Bewuste correctie
+    description: "Leerling en AI herkennen en corrigeren bias, stereotypering en onvolledige representatie. Neutraliteit wordt onderdeel van het gesprek."
+    learner_obs:
+      - Signaleert mogelijke bias in voorbeelden.
+      - Vraagt naar ontbrekende perspectieven.
+      - Geeft een reden waarom informatie mogelijk vertekend is.
+    ai_obs:
+      - Corrigeert stereotyperende formuleringen meteen.
+      - Biedt alternatieven en checkt evenwichtigheid.
+      - Benoemt lacunes of dominantie van één perspectief.
+    flag: TD_BALANCED
+    fix: "AI vraagt de leerling expliciet om een voorbeeld opnieuw te formuleren in neutralere, inclusievere taal."
+
+  band 0.7-0.89:
+    label: Meerperspectivisch & representatief
+    description: "AI maakt ruimte voor diverse stemmen en contexten. Leerling vergelijkt perspectieven en benoemt representatie-effecten."
+    learner_obs:
+      - Vergelijkt perspectieven op neutraliteit en volledigheid.
+      - Analyseert hoe framing betekenis beïnvloedt.
+      - Vraagt naar ontbrekende groepen of voorbeelden.
+    ai_obs:
+      - Geeft meerperspectivische voorbeelden.
+      - Legt uit hoe representatiekeuzes informatie vormen.
+      - Biedt alternatieven gebaseerd op diversiteit van contexten.
+    flag: COGNITIVE_LOAD_RISK
+    fix: "AI beperkt de perspectieven tot de twee meest relevante en vraagt de leerling welke weergave het meest fair is."
+
+  band 0.9-1.0:
+    label: Verantwoord & kritisch
+    description: "AI en leerling gaan expliciet, kritisch en zorgvuldig om met bias, framing en fairness. Leerling verankert dit als standaardvaardigheid."
+    learner_obs:
+      - Kan expliciet uitleggen waarom een voorbeeld fair of unfair is.
+      - Gebruikt principes van neutraliteit en representatie spontaan.
+      - Reflecteert op eigen aannames en framing.
+    ai_obs:
+      - Maakt assumpties en representatiekeuzes transparant.
+      - Biedt systematisch neutralere herformuleringen.
+      - Stelt controlevragen over fairness in elke kritieke stap.
+    flag: TD_BALANCED
+    fix: "AI vraagt: 'Welke mogelijke bias zou ik alsnog kunnen missen?' en koppelt de leerlingrespons terug aan kernprincipes van fairness."
+
+links:
+  E_EpistemischeBetrouwbaarheid: bewaakbaarheid_van_bronnen
+  T_TechnologischeIntegratieVisibility: transparantie_van_bias
+  S_SocialeInteractie: effect_op_interactie
+  TD_Taakdichtheid: invloed_op_denkhandeling

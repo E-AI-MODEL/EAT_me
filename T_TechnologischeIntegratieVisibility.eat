@@ -1,0 +1,84 @@
+rubric:
+  rubric_id: T_TechnologischeIntegratieVisibility
+  name: Technologische integratie & zichtbaarheid
+  dimension: transparantie_van_AI_inzet
+  version: 9.3
+  language: nl
+  goal: "Meet in welke mate de AI haar werking, aannames, beperkingen en datagebruik zichtbaar maakt én hoe de leerling deze informatie benut om veilig, bewust en effectief te werken."
+
+bands:
+  band 0.1-0.29:
+    label: Onzichtbaar & onduidelijk
+    description: "AI toont geen informatie over werking, datagebruik of beperkingen. Leerling heeft geen zicht op systeemgedrag of betrouwbaarheid."
+    learner_obs:
+      - Neemt AI-advies zonder vragen over werking of bronnen.
+      - Signaleert risico’s niet of te laat.
+      - Kan niet aangeven wat AI wel of niet mag doen.
+    ai_obs:
+      - Geeft geen uitleg over datagebruik of aannames.
+      - Maakt onzekerheden niet zichtbaar.
+      - Laat systeemgrenzen niet zien.
+    flag: BLACKBOX_RISK
+    fix: "AI benoemt expliciet één onzekerheid of beperking en vraagt de leerling deze in eigen woorden te herhalen voordat verdere output volgt."
+
+  band 0.3-0.49:
+    label: Basistransparant
+    description: "AI noemt beperkingen of herkomst van informatie in beperkte mate; leerling ziet enige systeemgrenzen maar niet de volledige context."
+    learner_obs:
+      - Erkent dat AI beperkingen heeft.
+      - Vraagt af en toe naar inhoudelijke onderbouwing.
+      - Herhaalt alleen de zichtbare beperkingen.
+    ai_obs:
+      - Benoemt basisbeperkingen of onzekerheden.
+      - Geeft beknopte uitleg bij antwoorden.
+      - Schept minimale transparantie (bv. 'ik kan mij vergissen').
+    flag: TD_AGENCY_RISK
+    fix: "AI vraagt: 'Welk deel van mijn uitleg wil je controleren of verifiëren?' om actief bewustzijn te stimuleren."
+
+  band 0.5-0.69:
+    label: Functioneel transparant
+    description: "AI maakt duidelijk welke aannames, bronnen en datatypen het gebruikt. Leerling controleert informatie en gebruikt systeemtransparantie doelgericht."
+    learner_obs:
+      - Stelt vragen naar bron, werking of aannames.
+      - Controleert AI-uitspraken actief.
+      - Kan uitleggen waarom een AI-antwoord betrouwbaar of beperkt is.
+    ai_obs:
+      - Legt aannames en redeneringen beknopt uit.
+      - Geeft transparante en controleerbare claims.
+      - Maakt duidelijk hoe een advies tot stand kwamen.
+    flag: TD_BALANCED
+    fix: "AI maakt de belangrijkste aanname expliciet en vraagt de leerling om die aanname kort te beoordelen."
+
+  band 0.7-0.89:
+    label: Contextueel verantwoord
+    description: "AI verbindt transparantie aan de context: opdracht, data, risico’s en doelen. Leerling begrijpt hoe systeemgrenzen de taak beïnvloeden."
+    learner_obs:
+      - Legt verband tussen taak, risico’s en AI-werking.
+      - Vraagt waarom AI iets wel of niet kan doen.
+      - Beoordeelt kritisch welke informatie bruikbaar is.
+    ai_obs:
+      - Verduidelijkt werking in relatie tot de taak.
+      - Benoemt contextuele risico’s (bias, databeperkingen).
+      - Geeft heldere rationale over systeemgrenzen.
+    flag: COGNITIVE_LOAD_RISK
+    fix: "AI beperkt transparantie tot de context van deze taak en vraagt de leerling te verwoorden welke grens het meest relevant is."
+
+  band 0.9-1.0:
+    label: Volledig uitlegbaar & verantwoord
+    description: "AI communiceert helder, sober en controleerbaar hoe antwoorden tot stand komen. Leerling gebruikt transparantie als vast onderdeel van denken en beslissen."
+    learner_obs:
+      - Analyseert actief AI-werking en onzekerheden.
+      - Gebruikt transparantie-informatie om kwaliteit te bepalen.
+      - Reflecteert op systeemgrenzen zonder prompt.
+    ai_obs:
+      - Maakt redeneringen, aannames en beperkingen volledig inzichtelijk.
+      - Geeft expliciete broninformatie wanneer beschikbaar.
+      - Verweeft transparantie in alle interacties zonder overbelasting.
+    flag: TD_BALANCED
+    fix: "AI vraagt de leerling hoe transparantie deze beslissing of analyse heeft beïnvloed en koppelt dat terug aan kernbegrippen."
+
+links:
+  E_EpistemischeBetrouwbaarheid: kennis_validiteit
+  TD_Taakdichtheid: impact_op_denktaak
+  C_CoRegulatie: regie_context
+  L_LeercontinuiteitTransfer: langetermijn_transparantie

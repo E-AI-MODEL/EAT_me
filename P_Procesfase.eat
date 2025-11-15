@@ -1,0 +1,83 @@
+rubric:
+  rubric_id: P_Procesfase
+  name: Procesfase-specificiteit
+  dimension: leerfase
+  version: 9.3
+  language: nl
+  goal: "Meet in welke fase van het leerproces AI wordt ingezet en hoe kritisch die fase is voor begrip, toepassing en beoordeling."
+
+bands:
+  band 0.1-0.29:
+    label: Oriëntatie & organisatie
+    description: "AI ondersteunt alleen voorbereidende taken zoals oriënteren, plannen of structureren; geen inhoudelijke invloed op leren."
+    learner_obs:
+      - Organiseert materialen of taken.
+      - Plant eigen werk zonder inhoudelijke sturing.
+      - Gebruikt AI alleen voor logistieke voorbereidingen.
+    ai_obs:
+      - Geeft reminders, structuren of planning.
+      - Geen inhoudelijke kennis of uitleg.
+      - Geen invloed op denkproces of beslissingen.
+    flag: UNDERUSE_WARNING
+    fix: "AI stelt één inhoudelijke verhelderingsvraag of vraagt de leerling om voorkennis te activeren zonder zelf uitleg te geven."
+
+  band 0.3-0.49:
+    label: Activeren van voorkennis
+    description: "AI helpt de leerling om bestaande kennis te activeren of relevante context te verkennen."
+    learner_obs:
+      - Herinnert eerder behandelde begrippen.
+      - Verbindt voorkennis aan nieuw onderwerp.
+      - Formuleert eerste betekenisvragen.
+    ai_obs:
+      - Geeft hints of korte triggers.
+      - Stelt vragen over wat de leerling al weet.
+      - Geeft geen volledige uitleg of voorbeelden.
+    flag: TD_AGENCY_RISK
+    fix: "AI stelt enkel vragen die voorkennis ophalen en geeft geen nieuwe conceptuitleg totdat de leerling zelf verbanden heeft benoemd."
+
+  band 0.5-0.69:
+    label: Instructie & begrip
+    description: "AI biedt uitleg, voorbeelden of modeling; leerling verwerkt actief door te vergelijken, analyseren of controleren."
+    learner_obs:
+      - Legt verbanden tussen concepten.
+      - Vraagt verduidelijking bij onduidelijkheid.
+      - Denkt hardop mee met AI-voorbeelden.
+    ai_obs:
+      - Geeft voorbeelden of tegenvoorbeelden.
+      - Legt concepten uit in stappen.
+      - Stelt reflectieve vragen om begrip te controleren.
+    flag: COGNITIVE_LOAD_RISK
+    fix: "AI beperkt uitleg tot één kernconcept per beurt en vraagt de leerling expliciet om dat concept in eigen woorden te herformuleren."
+
+  band 0.7-0.89:
+    label: Toepassen & oefenen
+    description: "AI ondersteunt toepassing, oefening en formatieve feedback; leerling voert denkhandelingen zelfstandig uit."
+    learner_obs:
+      - Past concepten toe op nieuwe voorbeelden.
+      - Gebruikt feedback om eigen aanpak bij te sturen.
+      - Controleert eigen begrip door reflectie.
+    ai_obs:
+      - Geeft foutanalyses zonder oplossingen te verraden.
+      - Biedt graduele hints in plaats van antwoorden.
+      - Geeft adaptieve feedback gericht op volgende stap.
+    flag: TD_BALANCED
+    fix: "AI vraagt welke stap de leerling zélf wil proberen voordat hints of voorbeelden worden gegeven."
+
+  band 0.9-1.0:
+    label: Toetsing & evaluatie
+    description: "AI beïnvloedt beoordeling, certificering of beslissingen over leerstatus; hoogste risico en strengste eisen aan transparantie."
+    learner_obs:
+      - Reflecteert op eigen werk ten opzichte van criteria.
+      - Controleert of AI-feedback klopt met opdrachtvereisten.
+      - Gebruikt AI alleen ter verificatie, niet als beslisser.
+    ai_obs:
+      - Markeert fouten of ontbrekende elementen.
+      - Geeft feedback die impliciet beoordelend is.
+      - Maakt beoordelingscriteria expliciet navolgbaar.
+    flag: BLACKBOX_RISK
+    fix: "AI toont altijd de exacte beoordelingscriteria en vraagt de leerling eerst om zelf te beoordelen voordat AI een eigen analyse geeft."
+
+links:
+  C_CoRegulatie: regiecontext
+  TD_Taakdichtheid: complexiteit_van_denken
+  E_EpistemischeBetrouwbaarheid: kwaliteitscontrole
