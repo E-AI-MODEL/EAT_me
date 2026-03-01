@@ -96,6 +96,8 @@ class EATValidator:
             files = [p]
         issues: List[ValidationIssue] = []
         for f in files:
+            if f.name == "index.eat":
+                continue
             data = load_eat(f)
             issues.extend(self.validate(data, source=str(f)))
         return issues
