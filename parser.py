@@ -1,9 +1,9 @@
-import yaml
-from typing import Dict, Any
+from eatme.parser import load_eat, dump_eat
+
 
 class EATParser:
-    def load(self, path: str) -> Dict[str, Any]:
-        with open(path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        data = yaml.safe_load(content)
-        return data
+    def load(self, path: str):
+        return load_eat(path)
+
+
+__all__ = ["EATParser", "load_eat", "dump_eat"]
