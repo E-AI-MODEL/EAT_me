@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "version": 2.0,
+    "mode": "runtime",
+    "locked": true
+  },
+  "index": {
+    "order": [
+      "P_Procesfase",
+      "TD_Taakdichtheid",
+      "C_CoRegulatie",
+      "V_Vaardigheidspotentieel",
+      "T_TechnologischeIntegratieVisibility",
+      "S_SocialeInteractie",
+      "L_LeercontinuiteitTransfer",
+      "E_EpistemischeBetrouwbaarheid",
+      "B_BiasCorrectieFairness"
+    ],
+    "files": [
+      "P_Procesfase.eat",
+      "TD_Taakdichtheid.eat",
+      "C_CoRegulatie.eat",
+      "V_Vaardigheidspotentieel.eat",
+      "T_TechnologischeIntegratieVisibility.eat",
+      "S_SocialeInteractie.eat",
+      "L_LeercontinuiteitTransfer.eat",
+      "E_EpistemischeBetrouwbaarheid.eat",
+      "B_BiasCorrectieFairness.eat"
+    ]
+  }
+}
