@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
-from .evaluator import report_to_dict
 from .models import EvaluationReport
 
 
@@ -14,6 +12,9 @@ class TraceLogger:
     def __init__(self, log_path: str = "trace/eat_trace.jsonl"):
         self.log_path = Path(log_path)
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    def _clip(self, text: str, limit: int = 120) -> str:
+        return (text or "")[:limit]
 
     def log_turn(
         self,
@@ -23,7 +24,7 @@ class TraceLogger:
         report: EvaluationReport,
         sources: List[Dict[str, Any]],
     ) -> Dict[str, Any]:
-        entry = {
+        entry: Dict[str, Any] = {
             "session_id": session_id,
             "turn_id": turn_id,
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -36,6 +37,7 @@ class TraceLogger:
                     "band": r.selected_band,
                     "confidence": r.confidence,
                     "flags": r.flags,
+                    "evidence_snippets": [self._clip(s) for s in r.evidence_snippets[:2]],
                 }
                 for r in report.per_rubric
             ],
@@ -52,7 +54,13 @@ class TraceLogger:
                 for s in sources
             ],
             "suggested_fixes": report.rewrite_instructions,
+            "rewrite_required": report.rewrite_required,
         }
+        if report.would_have_decided is not None:
+            entry["would_have_decided"] = report.would_have_decided.value
+        if report.final_reply is not None:
+            entry["final_reply"] = self._clip(report.final_reply)
+
         with self.log_path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
         return entry

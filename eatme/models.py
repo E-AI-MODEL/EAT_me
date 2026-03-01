@@ -59,3 +59,6 @@ class EvaluationReport:
     rewrite_instructions: List[str]
     action_taken: Decision
     rewrite_iterations: int = 0
+    would_have_decided: Optional[Decision] = None
+    rewrite_required: bool = False
+    final_reply: Optional[str] = None
