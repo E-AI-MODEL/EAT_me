@@ -65,6 +65,7 @@ bands:
 
 
 def _valid_rubric(rubric_id="R", links=None):
+    band_edges = [(0.0, 0.2), (0.2, 0.4), (0.4, 0.6), (0.6, 0.8), (0.8, 1.0)]
     return {
         "meta": {"version": 2.0, "locked": True},
         "rubric": {
@@ -77,55 +78,16 @@ def _valid_rubric(rubric_id="R", links=None):
         },
         "bands": [
             {
-                "score_min": 0.0,
-                "score_max": 0.2,
-                "label": "a",
+                "score_min": score_min,
+                "score_max": score_max,
+                "label": f"band {i}",
                 "description": "d",
                 "learner_obs": ["x"],
                 "ai_obs": ["y"],
                 "flag": "f",
                 "fix": "z",
-            },
-            {
-                "score_min": 0.2,
-                "score_max": 0.4,
-                "label": "b",
-                "description": "d",
-                "learner_obs": ["x"],
-                "ai_obs": ["y"],
-                "flag": "f",
-                "fix": "z",
-            },
-            {
-                "score_min": 0.4,
-                "score_max": 0.6,
-                "label": "c",
-                "description": "d",
-                "learner_obs": ["x"],
-                "ai_obs": ["y"],
-                "flag": "f",
-                "fix": "z",
-            },
-            {
-                "score_min": 0.6,
-                "score_max": 0.8,
-                "label": "d",
-                "description": "d",
-                "learner_obs": ["x"],
-                "ai_obs": ["y"],
-                "flag": "f",
-                "fix": "z",
-            },
-            {
-                "score_min": 0.8,
-                "score_max": 1.0,
-                "label": "e",
-                "description": "d",
-                "learner_obs": ["x"],
-                "ai_obs": ["y"],
-                "flag": "f",
-                "fix": "z",
-            },
+            }
+            for i, (score_min, score_max) in enumerate(band_edges)
         ],
         "links": links or {},
     }
