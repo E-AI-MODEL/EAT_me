@@ -3,7 +3,9 @@ import unittest
 from pathlib import Path
 
 from engine import EATRuntimeGatekeeper
-from eatme.models import GatekeeperConfig, Mode
+from eatme.evaluator import GatekeeperOrchestrator, extract_features
+from eatme.models import Decision, GatekeeperConfig, Mode
+from eatme.parser import load_eat
 
 
 class EvaluatorApiTests(unittest.TestCase):
@@ -72,3 +74,34 @@ class EvaluatorApiTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+
+def test_language_aware_english_source_and_uncertainty_detection():
+    features = extract_features([], "Source: I think it might be 42 in 2024.", [], language="en")
+    assert features["explicit_source_claim"] is True
+    assert features["uncertainty_markers"] >= 1
+
+
+def test_llm_judge_gray_zone_overrides_heuristic_score():
+    rubric = load_eat(Path("rubrics/E_EpistemischeBetrouwbaarheid.eat"))
+    calls = []
+
+    def judge(prompt: str) -> str:
+        calls.append(prompt)
+        return "0.9"
+
+    config = GatekeeperConfig(
+        mode=Mode.GATEKEEP,
+        llm_judge_enabled=True,
+        llm_gray_zone=1.0,
+        llm_judge_func=judge,
+    )
+    report = GatekeeperOrchestrator([rubric], config).evaluate(
+        [{"role": "user", "text": "Wat is dit?"}],
+        "Bron: onbekend 2024",
+        [],
+    )
+    assert calls
+    assert report.per_rubric[0].quick_score == 0.9
+    assert report.global_decision == Decision.PASS

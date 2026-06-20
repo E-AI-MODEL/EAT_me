@@ -2,24 +2,36 @@ from __future__ import annotations
 
 from dataclasses import asdict
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from .models import Decision, EvaluationReport, GatekeeperConfig, Mode, RubricAssessment
 
 URL_RE = re.compile(r"https?://\S+", re.IGNORECASE)
 YEAR_NUM_RE = re.compile(r"\b(\d{4}|\d+[.,]?\d*)\b")
 STEP_RE = re.compile(r"\b\d+\.\s")
-UNCERTAINTY_RE = re.compile(r"\b(mogelijk|waarschijnlijk|onzeker|ik denk|kan zijn|volgens mij)\b", re.IGNORECASE)
-GENERALIZATION_RE = re.compile(r"\b(altijd|nooit|iedereen|niemand|alle)\b", re.IGNORECASE)
 QUESTION_RE = re.compile(r"\?")
-UNDERSTAND_RE = re.compile(r"\b(begrijp|snap|duidelijk|klopt dit)\b", re.IGNORECASE)
-EXPLICIT_SOURCE_CLAIM_RE = re.compile(
-    r"(bron\s*:|volgens\s+bron|volgens\s+(onderzoek|studie)|\[[0-9]+\])",
-    re.IGNORECASE,
-)
-WEAK_ATTRIBUTION_RE = re.compile(r"\b(volgens mij|ik denk|waarschijnlijk|vermoedelijk)\b", re.IGNORECASE)
 
-KEYWORD_SIGNALS: Dict[str, Dict[str, Any]] = {
+LANGUAGE_KEYWORDS: Dict[str, Dict[str, List[str]]] = {
+    "nl": {
+        "uncertainty": ["mogelijk", "waarschijnlijk", "onzeker", "ik denk", "kan zijn", "volgens mij"],
+        "generalization": ["altijd", "nooit", "iedereen", "niemand", "alle"],
+        "understanding": ["begrijp", "snap", "duidelijk", "klopt dit"],
+        "source_claim": [r"bron\s*:", r"volgens\s+bron", r"volgens\s+(onderzoek|studie)", r"\[[0-9]+\]"],
+        "weak_attribution": ["volgens mij", "ik denk", "waarschijnlijk", "vermoedelijk"],
+        "tooling": ["bron", "database", "docstore", "tool", "zoek"],
+    },
+    "en": {
+        "uncertainty": ["possibly", "probably", "uncertain", "i think", "might be", "i believe"],
+        "generalization": ["always", "never", "everyone", "nobody", "all"],
+        "understanding": ["understand", "clear", "does that make sense", "make sense"],
+        "source_claim": [r"source\s*:", r"according\s+to", r"research\s+shows", r"studies\s+show", r"\[[0-9]+\]"],
+        "weak_attribution": ["i think", "probably", "i believe", "presumably"],
+        "tooling": ["source", "database", "docstore", "tool", "search"],
+    },
+}
+
+KEYWORD_SIGNALS_BY_LANGUAGE: Dict[str, Dict[str, Dict[str, Any]]] = {
+    "nl": {
     "C_CoRegulatie": {
         "reward": ["kies", "jij bepaalt", "opties", "waarom wil je", "welke optie"],
         "reward_weight": 0.08,
@@ -47,25 +59,57 @@ KEYWORD_SIGNALS: Dict[str, Dict[str, Any]] = {
         "reward": ["wat werkte", "volgende keer", "ander vak", "wat neem je mee"],
         "reward_weight": 0.1,
     },
+    },
+    "en": {
+        "C_CoRegulatie": {"reward": ["choose", "you decide", "options", "why do you want", "which option"], "reward_weight": 0.08},
+        "TD_Taakdichtheid": {
+            "penalize": ["the answer is", "solution is", "therefore it is", "the correct answer"],
+            "penalty_weight": 0.1,
+            "reward": ["hint", "step", "try first", "would you like a clue"],
+            "reward_weight": 0.05,
+        },
+        "P_Procesfase": {
+            "strict_context": ["test", "exam", "assessment", "grading"],
+            "strict_penalty": 0.12,
+            "transparency": ["i can guide you", "i will not give the full answer", "step by step"],
+        },
+        "L_LeercontinuiteitTransfer": {"reward": ["earlier", "as you just said", "summarize", "previous step"], "reward_weight": 0.08},
+        "S_SocialeInteractie": {"reward": ["which perspective", "what do you think", "why do you think", "how do you see"], "reward_weight": 0.1},
+        "V_Vaardigheidspotentieel": {"reward": ["what worked", "next time", "another subject", "what do you take away"], "reward_weight": 0.1},
+    },
 }
+KEYWORD_SIGNALS = KEYWORD_SIGNALS_BY_LANGUAGE["nl"]
 
 
-def extract_features(transcript_window: List[Dict[str, str]], candidate_reply: str, sources: List[Dict[str, Any]]) -> Dict[str, Any]:
+def _keyword_regex(language: str, key: str) -> re.Pattern[str]:
+    terms = LANGUAGE_KEYWORDS.get(language, LANGUAGE_KEYWORDS["nl"])[key]
+    return re.compile(r"\b(" + "|".join(terms) + r")\b", re.IGNORECASE)
+
+
+def extract_features(
+    transcript_window: List[Dict[str, str]],
+    candidate_reply: str,
+    sources: List[Dict[str, Any]],
+    language: str = "nl",
+) -> Dict[str, Any]:
     text = candidate_reply or ""
-    explicit_source_claim = bool(EXPLICIT_SOURCE_CLAIM_RE.search(text) or URL_RE.search(text))
-    weak_attribution = bool(WEAK_ATTRIBUTION_RE.search(text))
+    lang = language if language in LANGUAGE_KEYWORDS else "nl"
+    source_claim_re = re.compile("|".join(LANGUAGE_KEYWORDS[lang]["source_claim"]), re.IGNORECASE)
+    weak_attribution = bool(_keyword_regex(lang, "weak_attribution").search(text))
+    explicit_source_claim = bool(source_claim_re.search(text) or URL_RE.search(text))
     return {
         "explicit_source_claim": explicit_source_claim,
         "weak_attribution": weak_attribution,
         "citation_present": explicit_source_claim,
         "numeric_claims_count": len(YEAR_NUM_RE.findall(text)),
         "sources_count": len(sources),
-        "mentions_tooling": any(k in text.lower() for k in ["bron", "database", "docstore", "tool", "zoek"]),
+        "mentions_tooling": any(k in text.lower() for k in LANGUAGE_KEYWORDS[lang]["tooling"]),
         "question_count": len(QUESTION_RE.findall(text)),
-        "check_understanding_count": len(UNDERSTAND_RE.findall(text)),
+        "check_understanding_count": len(_keyword_regex(lang, "understanding").findall(text)),
         "step_structure_present": bool(STEP_RE.search(text)),
-        "uncertainty_markers": len(UNCERTAINTY_RE.findall(text)),
-        "generalization_markers": len(GENERALIZATION_RE.findall(text)),
+        "uncertainty_markers": len(_keyword_regex(lang, "uncertainty").findall(text)),
+        "generalization_markers": len(_keyword_regex(lang, "generalization").findall(text)),
+        "language": lang,
         "text_lc": text.lower(),
     }
 
@@ -95,7 +139,7 @@ def _keyword_hits(text_lc: str, keywords: List[str]) -> int:
     return sum(1 for kw in keywords if kw in text_lc)
 
 
-def quick_score_for_rubric(rubric_id: str, features: Dict[str, Any], hard_flags: List[str]) -> float:
+def quick_score_for_rubric(rubric_id: str, features: Dict[str, Any], hard_flags: List[str], language: Optional[str] = None) -> float:
     score = 0.6
     if rubric_id == "E_EpistemischeBetrouwbaarheid":
         if "UNGROUNDED_CLAIMS" in hard_flags:
@@ -126,7 +170,8 @@ def quick_score_for_rubric(rubric_id: str, features: Dict[str, Any], hard_flags:
         if features["question_count"] > 0:
             score += 0.05
 
-    signals = KEYWORD_SIGNALS.get(rubric_id, {})
+    lang = language or features.get("language", "nl")
+    signals = KEYWORD_SIGNALS_BY_LANGUAGE.get(lang, KEYWORD_SIGNALS_BY_LANGUAGE["nl"]).get(rubric_id, {})
     text_lc = features.get("text_lc", "")
     if signals:
         reward_keywords = signals.get("reward", [])
@@ -146,6 +191,37 @@ def quick_score_for_rubric(rubric_id: str, features: Dict[str, Any], hard_flags:
     return max(0.0, min(1.0, score))
 
 
+def _llm_score_rubric(
+    rubric: Dict[str, Any],
+    candidate_reply: str,
+    transcript_window: List[Dict[str, str]],
+    sources: List[Dict[str, Any]],
+    llm_func: Callable[[str], Any],
+) -> float:
+    """Score a rubric via a caller-provided LLM function, clamped to [0, 1]."""
+    bands_text = "\n".join(
+        f"Band {band.get('score_min', 0):.2f}-{band.get('score_max', 1):.2f} ({band.get('label', '')}): "
+        f"AI observaties: {', '.join(band.get('ai_obs', []))}; flag: {band.get('flag', 'none')}"
+        for band in rubric.get("bands", [])
+    )
+    rub = rubric.get("rubric", {})
+    prompt = (
+        "Je bent een pedagogisch evaluator. Beoordeel alleen met een getal tussen 0.0 en 1.0.\n"
+        f"Rubric: {rub.get('rubric_id', 'unknown')}\n"
+        f"Doel: {rub.get('goal', '')}\n"
+        f"Bands:\n{bands_text}\n"
+        f"Laatste transcript: {transcript_window[-1] if transcript_window else {}}\n"
+        f"Bronnen aanwezig: {len(sources)}\n"
+        f"AI-antwoord: {candidate_reply}\n"
+        "Score:"
+    )
+    try:
+        raw = llm_func(prompt)
+        return max(0.0, min(1.0, float(str(raw).strip())))
+    except (TypeError, ValueError):
+        return 0.3
+
+
 class GatekeeperOrchestrator:
     def __init__(self, rubrics: List[Dict[str, Any]], config: Optional[GatekeeperConfig] = None):
         self.rubrics = rubrics
@@ -158,7 +234,8 @@ class GatekeeperOrchestrator:
         sources: List[Dict[str, Any]],
         tool_usage: Optional[Dict[str, Any]] = None,
     ) -> EvaluationReport:
-        features = extract_features(transcript_window, candidate_reply, sources)
+        default_language = self.rubrics[0].get("rubric", {}).get("language", "nl") if self.rubrics else "nl"
+        features = extract_features(transcript_window, candidate_reply, sources, language=default_language)
         hard_flags: List[str] = []
         if features["explicit_source_claim"] and features["sources_count"] == 0:
             hard_flags.append("MISLEADING_SOURCES")
@@ -172,8 +249,14 @@ class GatekeeperOrchestrator:
         critical_fail = False
         any_fail = False
         for rubric in self.rubrics:
-            rid = rubric.get("rubric", {}).get("rubric_id", "unknown")
-            score = quick_score_for_rubric(rid, features, hard_flags)
+            rubric_meta = rubric.get("rubric", {})
+            rid = rubric_meta.get("rubric_id", "unknown")
+            language = rubric_meta.get("language", features.get("language", "nl"))
+            score = quick_score_for_rubric(rid, features, hard_flags, language=language)
+            if self.config.llm_judge_enabled and self.config.llm_judge_func:
+                threshold = self.config.thresholds.pass_threshold
+                if abs(score - threshold) <= self.config.llm_gray_zone:
+                    score = _llm_score_rubric(rubric, candidate_reply, transcript_window, sources, self.config.llm_judge_func)
             band = _band_for_score(rubric, score)
             flags = list(hard_flags)
             if score < pass_t:
