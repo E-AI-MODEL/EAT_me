@@ -10,6 +10,7 @@ from eatme.engine import EATRuntimeGatekeeper
 from eatme.evaluator import GatekeeperOrchestrator, extract_features, quick_score_for_rubric
 from eatme.models import Decision, GatekeeperConfig, Mode
 from eatme.parser import load_eat
+from eatme.validator import EATValidator
 
 
 class RuntimeAndModesTests(unittest.TestCase):
@@ -33,6 +34,19 @@ class RuntimeAndModesTests(unittest.TestCase):
         index = json.loads(Path('rubrics/index.eat').read_text(encoding='utf-8'))
         for f in index['index']['files']:
             self.assertTrue((Path('rubrics') / f).exists())
+
+    def test_single_file_validation_skips_cross_rubric_link_check(self):
+        with tempfile.TemporaryDirectory() as td:
+            target = Path(td) / 'E_EpistemischeBetrouwbaarheid.eat'
+            target.write_text(
+                Path('rubrics/E_EpistemischeBetrouwbaarheid.eat').read_text(encoding='utf-8'),
+                encoding='utf-8',
+            )
+
+            issues = EATValidator().validate_path(target)
+
+            link_issues = [issue for issue in issues if '.links.' in issue.path]
+            self.assertEqual([], link_issues)
 
     def test_mode_behavior(self):
         transcript = [{"role": "user", "text": "Wat is de hoofdstad van Frankrijk?"}]
