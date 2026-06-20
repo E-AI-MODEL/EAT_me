@@ -60,7 +60,7 @@ rewrite_func(candidate_reply: str, rewrite_instructions: list[str], context: dic
 Voorbeeld:
 
 ```python
-from engine import EATRuntimeGatekeeper
+from eatme.engine import EATRuntimeGatekeeper
 from eatme.models import GatekeeperConfig, Mode
 
 
@@ -130,11 +130,11 @@ Output:
 ## Voorbeeld gatekeeper-run
 
 ```python
-from engine import EATRuntimeGatekeeper
+from eatme.engine import EATRuntimeGatekeeper
 from eatme.models import GatekeeperConfig, Mode
 
 
-gate = EATRuntimeGatekeeper(rubric_dir=".", config=GatekeeperConfig(mode=Mode.GATEKEEP))
+gate = EATRuntimeGatekeeper(rubric_dir="rubrics", config=GatekeeperConfig(mode=Mode.GATEKEEP))
 report = gate.evaluate_turn(
     session_id="demo",
     turn_id="1",
