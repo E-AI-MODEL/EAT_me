@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Set
+from typing import Any, Dict, Iterable, List
 
 from .parser import load_eat
 
@@ -17,7 +17,7 @@ class EATValidator:
     def __init__(self, tolerance: float = 0.02):
         self.tolerance = tolerance
 
-    def validate(self, rubric: Dict[str, Any], source: str = "<memory>", known_rubric_ids: Optional[Set[str]] = None) -> List[ValidationIssue]:
+    def validate(self, rubric: Dict[str, Any], source: str = "<memory>") -> List[ValidationIssue]:
         issues: List[ValidationIssue] = []
         meta = rubric.get("meta")
         if not isinstance(meta, dict):
@@ -64,13 +64,9 @@ class EATValidator:
                 val = band.get(list_key)
                 if not isinstance(val, list) or not all(isinstance(x, str) for x in val):
                     issues.append(ValidationIssue(f"{bpath}.{list_key}", "must be list[str]"))
-                elif not val:
-                    issues.append(ValidationIssue(f"{bpath}.{list_key}", "must not be empty"))
             for key in ["label", "description", "flag", "fix"]:
                 if not isinstance(band.get(key), str):
                     issues.append(ValidationIssue(f"{bpath}.{key}", "must be string"))
-                elif key in {"flag", "fix"} and not band.get(key).strip():
-                    issues.append(ValidationIssue(f"{bpath}.{key}", f"must not be empty for rubric_id={rubric_id}"))
 
         if ranges:
             ranges.sort(key=lambda x: x[0])
@@ -89,14 +85,6 @@ class EATValidator:
                         f"{source}.bands[{curr_i}].score_min",
                         f"overlap detected with band[{prev_i}] ({prev_max} -> {curr_min})",
                     ))
-
-        links = rubric.get("links", {})
-        if links is not None and not isinstance(links, dict):
-            issues.append(ValidationIssue(f"{source}.links", "must be object when present"))
-        elif known_rubric_ids:
-            for ref_id in links:
-                if ref_id not in known_rubric_ids:
-                    issues.append(ValidationIssue(f"{source}.links.{ref_id}", f"references unknown rubric_id '{ref_id}'"))
         return issues
 
     def validate_path(self, path: str | Path) -> List[ValidationIssue]:
@@ -106,13 +94,10 @@ class EATValidator:
             files = sorted(p.glob("*.eat"))
         else:
             files = [p]
-        loaded: List[tuple[Path, Dict[str, Any]]] = []
+        issues: List[ValidationIssue] = []
         for f in files:
             if f.name == "index.eat":
                 continue
-            loaded.append((f, load_eat(f)))
-        known_ids = {str(data.get("rubric", {}).get("rubric_id")) for _, data in loaded if data.get("rubric", {}).get("rubric_id")}
-        issues: List[ValidationIssue] = []
-        for f, data in loaded:
-            issues.extend(self.validate(data, source=str(f), known_rubric_ids=known_ids))
+            data = load_eat(f)
+            issues.extend(self.validate(data, source=str(f)))
         return issues
