@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 
 class Mode(str, Enum):
@@ -39,6 +39,12 @@ class GatekeeperConfig:
     llm_judge_enabled: bool = False
     llm_gray_zone: float = 0.05
     max_rewrite_iterations: int = 2
+    llm_judge_model: str = ""
+    llm_judge_func: Optional[Callable[[str], Any]] = None
+    cycle_enabled: bool = False
+    cycle_active_phase: str = "P"
+    cycle_focus_weight: float = 1.15
+    cycle_neighbor_span: int = 1
 
 
 @dataclass

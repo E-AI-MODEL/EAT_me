@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from eatme.evaluator import GatekeeperOrchestrator, report_to_dict
+from eatme.cycle import CYCLE_PHASES
 from eatme.models import Decision, GatekeeperConfig
 from eatme.parser import load_eat
 from eatme.tracing import TraceLogger
@@ -27,6 +28,13 @@ class EATRuntimeGatekeeper:
         self.orchestrator = GatekeeperOrchestrator(self.rubrics, config=config)
         self.tracer = TraceLogger(trace_path)
         self.rewrite_func = rewrite_func
+
+    def _advance_cycle(self) -> None:
+        config = self.orchestrator.config
+        if not config.cycle_enabled or config.cycle_active_phase not in CYCLE_PHASES:
+            return
+        idx = CYCLE_PHASES.index(config.cycle_active_phase)
+        config.cycle_active_phase = CYCLE_PHASES[(idx + 1) % len(CYCLE_PHASES)]
 
     def _load_rubrics(self, rubric_dir: Path) -> List[Dict[str, Any]]:
         rubrics: List[Dict[str, Any]] = []
@@ -110,6 +118,8 @@ class EATRuntimeGatekeeper:
 
         report.rewrite_iterations = max(report.rewrite_iterations, used_iterations)
         report.final_reply = final_reply
+        if report.global_decision in {Decision.PASS, Decision.NUDGE}:
+            self._advance_cycle()
 
         self.tracer.log_turn(
             session_id=session_id,
