@@ -102,7 +102,8 @@ class EATValidator:
     def validate_path(self, path: str | Path) -> List[ValidationIssue]:
         p = Path(path)
         files: Iterable[Path]
-        if p.is_dir():
+        validate_cross_links = p.is_dir()
+        if validate_cross_links:
             files = sorted(p.glob("*.eat"))
         else:
             files = [p]
@@ -111,7 +112,9 @@ class EATValidator:
             if f.name == "index.eat":
                 continue
             loaded.append((f, load_eat(f)))
-        known_ids = {str(data.get("rubric", {}).get("rubric_id")) for _, data in loaded if data.get("rubric", {}).get("rubric_id")}
+        known_ids: Optional[Set[str]] = None
+        if validate_cross_links:
+            known_ids = {str(data.get("rubric", {}).get("rubric_id")) for _, data in loaded if data.get("rubric", {}).get("rubric_id")}
         issues: List[ValidationIssue] = []
         for f, data in loaded:
             issues.extend(self.validate(data, source=str(f), known_rubric_ids=known_ids))
