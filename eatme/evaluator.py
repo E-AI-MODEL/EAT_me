@@ -4,6 +4,7 @@ from dataclasses import asdict
 import re
 from typing import Any, Callable, Dict, List, Optional
 
+from .cycle import focused_rubric_ids
 from .models import Decision, EvaluationReport, GatekeeperConfig, Mode, RubricAssessment
 
 URL_RE = re.compile(r"https?://\S+", re.IGNORECASE)
@@ -32,33 +33,21 @@ LANGUAGE_KEYWORDS: Dict[str, Dict[str, List[str]]] = {
 
 KEYWORD_SIGNALS_BY_LANGUAGE: Dict[str, Dict[str, Dict[str, Any]]] = {
     "nl": {
-    "C_CoRegulatie": {
-        "reward": ["kies", "jij bepaalt", "opties", "waarom wil je", "welke optie"],
-        "reward_weight": 0.08,
-    },
-    "TD_Taakdichtheid": {
-        "penalize": ["antwoord is", "oplossing is", "dus het is", "het juiste antwoord"],
-        "penalty_weight": 0.1,
-        "reward": ["hint", "stap", "probeer eerst", "wil je een aanwijzing"],
-        "reward_weight": 0.05,
-    },
-    "P_Procesfase": {
-        "strict_context": ["toets", "examen", "beoordeling", "nakijken"],
-        "strict_penalty": 0.12,
-        "transparency": ["ik kan je begeleiden", "ik geef geen volledig antwoord", "stap voor stap"],
-    },
-    "L_LeercontinuiteitTransfer": {
-        "reward": ["eerder", "zoals je net zei", "samenvatten", "vorige stap"],
-        "reward_weight": 0.08,
-    },
-    "S_SocialeInteractie": {
-        "reward": ["welk perspectief", "wat vind jij", "waarom denk je", "hoe zie jij"],
-        "reward_weight": 0.1,
-    },
-    "V_Vaardigheidspotentieel": {
-        "reward": ["wat werkte", "volgende keer", "ander vak", "wat neem je mee"],
-        "reward_weight": 0.1,
-    },
+        "C_CoRegulatie": {"reward": ["kies", "jij bepaalt", "opties", "waarom wil je", "welke optie"], "reward_weight": 0.08},
+        "TD_Taakdichtheid": {
+            "penalize": ["antwoord is", "oplossing is", "dus het is", "het juiste antwoord"],
+            "penalty_weight": 0.1,
+            "reward": ["hint", "stap", "probeer eerst", "wil je een aanwijzing"],
+            "reward_weight": 0.05,
+        },
+        "P_Procesfase": {
+            "strict_context": ["toets", "examen", "beoordeling", "nakijken"],
+            "strict_penalty": 0.12,
+            "transparency": ["ik kan je begeleiden", "ik geef geen volledig antwoord", "stap voor stap"],
+        },
+        "L_LeercontinuiteitTransfer": {"reward": ["eerder", "zoals je net zei", "samenvatten", "vorige stap"], "reward_weight": 0.08},
+        "S_SocialeInteractie": {"reward": ["welk perspectief", "wat vind jij", "waarom denk je", "hoe zie jij"], "reward_weight": 0.1},
+        "V_Vaardigheidspotentieel": {"reward": ["wat werkte", "volgende keer", "ander vak", "wat neem je mee"], "reward_weight": 0.1},
     },
     "en": {
         "C_CoRegulatie": {"reward": ["choose", "you decide", "options", "why do you want", "which option"], "reward_weight": 0.08},
@@ -95,11 +84,10 @@ def extract_features(
     text = candidate_reply or ""
     lang = language if language in LANGUAGE_KEYWORDS else "nl"
     source_claim_re = re.compile("|".join(LANGUAGE_KEYWORDS[lang]["source_claim"]), re.IGNORECASE)
-    weak_attribution = bool(_keyword_regex(lang, "weak_attribution").search(text))
     explicit_source_claim = bool(source_claim_re.search(text) or URL_RE.search(text))
     return {
         "explicit_source_claim": explicit_source_claim,
-        "weak_attribution": weak_attribution,
+        "weak_attribution": bool(_keyword_regex(lang, "weak_attribution").search(text)),
         "citation_present": explicit_source_claim,
         "numeric_claims_count": len(YEAR_NUM_RE.findall(text)),
         "sources_count": len(sources),
@@ -174,20 +162,14 @@ def quick_score_for_rubric(rubric_id: str, features: Dict[str, Any], hard_flags:
     signals = KEYWORD_SIGNALS_BY_LANGUAGE.get(lang, KEYWORD_SIGNALS_BY_LANGUAGE["nl"]).get(rubric_id, {})
     text_lc = features.get("text_lc", "")
     if signals:
-        reward_keywords = signals.get("reward", [])
-        if reward_keywords:
-            score += min(0.15, _keyword_hits(text_lc, reward_keywords) * signals.get("reward_weight", 0.05))
-
-        penalize_keywords = signals.get("penalize", [])
-        if penalize_keywords:
-            score -= min(0.15, _keyword_hits(text_lc, penalize_keywords) * signals.get("penalty_weight", 0.05))
-
+        if signals.get("reward"):
+            score += min(0.15, _keyword_hits(text_lc, signals["reward"]) * signals.get("reward_weight", 0.05))
+        if signals.get("penalize"):
+            score -= min(0.15, _keyword_hits(text_lc, signals["penalize"]) * signals.get("penalty_weight", 0.05))
         if rubric_id == "P_Procesfase":
             strict_hits = _keyword_hits(text_lc, signals.get("strict_context", []))
-            if strict_hits > 0:
-                if _keyword_hits(text_lc, signals.get("transparency", [])) == 0:
-                    score -= min(0.15, signals.get("strict_penalty", 0.1))
-
+            if strict_hits > 0 and _keyword_hits(text_lc, signals.get("transparency", [])) == 0:
+                score -= min(0.15, signals.get("strict_penalty", 0.1))
     return max(0.0, min(1.0, score))
 
 
@@ -198,7 +180,6 @@ def _llm_score_rubric(
     sources: List[Dict[str, Any]],
     llm_func: Callable[[str], Any],
 ) -> float:
-    """Score a rubric via a caller-provided LLM function, clamped to [0, 1]."""
     bands_text = "\n".join(
         f"Band {band.get('score_min', 0):.2f}-{band.get('score_max', 1):.2f} ({band.get('label', '')}): "
         f"AI observaties: {', '.join(band.get('ai_obs', []))}; flag: {band.get('flag', 'none')}"
@@ -216,8 +197,7 @@ def _llm_score_rubric(
         "Score:"
     )
     try:
-        raw = llm_func(prompt)
-        return max(0.0, min(1.0, float(str(raw).strip())))
+        return max(0.0, min(1.0, float(str(llm_func(prompt)).strip())))
     except (TypeError, ValueError):
         return 0.3
 
@@ -234,25 +214,29 @@ class GatekeeperOrchestrator:
         sources: List[Dict[str, Any]],
         tool_usage: Optional[Dict[str, Any]] = None,
     ) -> EvaluationReport:
-        default_language = self.rubrics[0].get("rubric", {}).get("language", "nl") if self.rubrics else "nl"
-        features = extract_features(transcript_window, candidate_reply, sources, language=default_language)
-        hard_flags: List[str] = []
-        if features["explicit_source_claim"] and features["sources_count"] == 0:
-            hard_flags.append("MISLEADING_SOURCES")
-        if features["numeric_claims_count"] > 0 and features["sources_count"] == 0:
-            hard_flags.append("UNGROUNDED_CLAIMS")
-
         assessments: List[RubricAssessment] = []
         pass_t = self.config.thresholds.pass_threshold
         gate_t = self.config.thresholds.gate_threshold
-
         critical_fail = False
         any_fail = False
+        focus_ids = focused_rubric_ids(
+            self.config.cycle_active_phase,
+            neighbor_span=max(0, self.config.cycle_neighbor_span),
+        ) if self.config.cycle_enabled else set()
+
         for rubric in self.rubrics:
             rubric_meta = rubric.get("rubric", {})
             rid = rubric_meta.get("rubric_id", "unknown")
-            language = rubric_meta.get("language", features.get("language", "nl"))
+            language = rubric_meta.get("language", "nl")
+            features = extract_features(transcript_window, candidate_reply, sources, language=language)
+            hard_flags: List[str] = []
+            if features["explicit_source_claim"] and features["sources_count"] == 0:
+                hard_flags.append("MISLEADING_SOURCES")
+            if features["numeric_claims_count"] > 0 and features["sources_count"] == 0:
+                hard_flags.append("UNGROUNDED_CLAIMS")
             score = quick_score_for_rubric(rid, features, hard_flags, language=language)
+            if focus_ids and rid in focus_ids:
+                score = min(1.0, score * self.config.cycle_focus_weight)
             if self.config.llm_judge_enabled and self.config.llm_judge_func:
                 threshold = self.config.thresholds.pass_threshold
                 if abs(score - threshold) <= self.config.llm_gray_zone:
@@ -268,11 +252,7 @@ class GatekeeperOrchestrator:
             assessments.append(
                 RubricAssessment(
                     rubric_id=rid,
-                    selected_band={
-                        "score_min": band.get("score_min"),
-                        "score_max": band.get("score_max"),
-                        "label": band.get("label"),
-                    },
+                    selected_band={"score_min": band.get("score_min"), "score_max": band.get("score_max"), "label": band.get("label")},
                     confidence=max(0.3, min(0.95, 0.5 + abs(score - pass_t))),
                     flags=flags,
                     fixes=[band.get("fix", "")],
@@ -306,12 +286,7 @@ class GatekeeperOrchestrator:
                 action_taken = Decision.REWRITE
 
         if mode == Mode.OBSERVE:
-            if critical_fail:
-                would_have_decided = Decision.BLOCK
-            elif any_fail:
-                would_have_decided = Decision.REWRITE
-            else:
-                would_have_decided = Decision.PASS
+            would_have_decided = Decision.BLOCK if critical_fail else Decision.REWRITE if any_fail else Decision.PASS
             decision = Decision.PASS
             action_taken = Decision.PASS
 
