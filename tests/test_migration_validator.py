@@ -64,6 +64,73 @@ bands:
 """
 
 
+def _valid_rubric(rubric_id="R", links=None):
+    return {
+        "meta": {"version": 2.0, "locked": True},
+        "rubric": {
+            "rubric_id": rubric_id,
+            "name": "N",
+            "dimension": "D",
+            "rubric_version": "9.3",
+            "language": "nl",
+            "goal": "g",
+        },
+        "bands": [
+            {
+                "score_min": 0.0,
+                "score_max": 0.2,
+                "label": "a",
+                "description": "d",
+                "learner_obs": ["x"],
+                "ai_obs": ["y"],
+                "flag": "f",
+                "fix": "z",
+            },
+            {
+                "score_min": 0.2,
+                "score_max": 0.4,
+                "label": "b",
+                "description": "d",
+                "learner_obs": ["x"],
+                "ai_obs": ["y"],
+                "flag": "f",
+                "fix": "z",
+            },
+            {
+                "score_min": 0.4,
+                "score_max": 0.6,
+                "label": "c",
+                "description": "d",
+                "learner_obs": ["x"],
+                "ai_obs": ["y"],
+                "flag": "f",
+                "fix": "z",
+            },
+            {
+                "score_min": 0.6,
+                "score_max": 0.8,
+                "label": "d",
+                "description": "d",
+                "learner_obs": ["x"],
+                "ai_obs": ["y"],
+                "flag": "f",
+                "fix": "z",
+            },
+            {
+                "score_min": 0.8,
+                "score_max": 1.0,
+                "label": "e",
+                "description": "d",
+                "learner_obs": ["x"],
+                "ai_obs": ["y"],
+                "flag": "f",
+                "fix": "z",
+            },
+        ],
+        "links": links or {},
+    }
+
+
 class MigrationValidatorTests(unittest.TestCase):
     def test_migration_converts_band_and_version(self):
         data = parse_legacy_rubric_text(LEGACY)
@@ -97,6 +164,24 @@ class MigrationValidatorTests(unittest.TestCase):
         }
         issues = EATValidator().validate(rubric, source="x")
         self.assertTrue(any("gap" in i.message for i in issues))
+
+    def test_single_file_validation_skips_cross_rubric_link_lookup(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rubric_path = Path(tmp) / "R.eat"
+            rubric_path.write_text(json.dumps(_valid_rubric(links={"Missing_Rubric": "related"})), encoding="utf-8")
+
+            issues = EATValidator().validate_path(rubric_path)
+
+        self.assertEqual([], issues)
+
+    def test_directory_validation_still_reports_unknown_links(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rubric_path = Path(tmp) / "R.eat"
+            rubric_path.write_text(json.dumps(_valid_rubric(links={"Missing_Rubric": "related"})), encoding="utf-8")
+
+            issues = EATValidator().validate_path(Path(tmp))
+
+        self.assertTrue(any("Missing_Rubric" in issue.message for issue in issues))
 
     def test_all_root_rubrics_validate(self):
         issues = EATValidator(tolerance=0.02).validate_path(Path("."))
