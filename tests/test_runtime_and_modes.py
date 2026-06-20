@@ -6,7 +6,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from engine import EATRuntimeGatekeeper
+from eatme.engine import EATRuntimeGatekeeper
 from eatme.evaluator import GatekeeperOrchestrator, extract_features, quick_score_for_rubric
 from eatme.models import Decision, GatekeeperConfig, Mode
 from eatme.parser import load_eat
@@ -16,7 +16,7 @@ from eatme.validator import EATValidator
 class RuntimeAndModesTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.rubrics = [load_eat(p) for p in sorted(Path('.').glob('*.eat'))]
+        cls.rubrics = [load_eat(p) for p in sorted(Path('rubrics').glob('*.eat')) if p.name != 'index.eat']
 
     def test_runtime_zip_has_real_rubrics(self):
         zip_path = Path('dist/EAT_v2_runtime_ready_FULL.zip')
@@ -120,7 +120,7 @@ class RuntimeAndModesTests(unittest.TestCase):
         self.assertGreater(score_uncertain, score_no_uncertain)
 
     def test_correct_mode_rewrite_without_hook_sets_required(self):
-        gate = EATRuntimeGatekeeper(rubric_dir='.', config=GatekeeperConfig(mode=Mode.CORRECT), trace_path='trace/test_trace.jsonl')
+        gate = EATRuntimeGatekeeper(rubric_dir='rubrics', config=GatekeeperConfig(mode=Mode.CORRECT), trace_path='trace/test_trace.jsonl')
         report = gate.evaluate_turn(
             session_id='s-rewrite-none',
             turn_id='t1',
@@ -137,7 +137,7 @@ class RuntimeAndModesTests(unittest.TestCase):
             return 'Ik weet het niet zeker; zonder bron kan ik geen claim doen. Wil je dat ik een zoekstrategie geef?'
 
         gate = EATRuntimeGatekeeper(
-            rubric_dir='.',
+            rubric_dir='rubrics',
             config=GatekeeperConfig(mode=Mode.CORRECT, max_rewrite_iterations=2),
             trace_path='trace/test_trace.jsonl',
             rewrite_func=rewrite_func,
@@ -152,7 +152,6 @@ class RuntimeAndModesTests(unittest.TestCase):
         self.assertIn(report['global_decision'], ['PASS', 'NUDGE'])
         self.assertLessEqual(report['rewrite_iterations'], 2)
         self.assertIn('final_reply', report)
-
 
     def test_observe_would_have_decided_rewrite_without_critical_fail(self):
         observe = GatekeeperOrchestrator(
@@ -198,6 +197,41 @@ class RuntimeAndModesTests(unittest.TestCase):
         neutral_score = quick_score_for_rubric('TD_Taakdichtheid', neutral, [])
         dominant_score = quick_score_for_rubric('TD_Taakdichtheid', dominant, [])
         self.assertLess(dominant_score, neutral_score)
+
+
+class CycleAndTracingTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.rubrics = [load_eat(p) for p in sorted(Path('rubrics').glob('*.eat')) if p.name != 'index.eat']
+
+    def test_cycle_focus_weight_changes_active_rubric_score(self):
+        transcript = [{"role": "user", "text": "Help me oefenen"}]
+        candidate = 'Laten we stap voor stap werken. Wil je een hint?'
+        cfg = GatekeeperConfig(mode=Mode.OBSERVE, cycle_enabled=True, cycle_active_phase='TD', cycle_focus_weight=1.5, cycle_neighbor_span=0)
+        focused = GatekeeperOrchestrator(self.rubrics, cfg).evaluate(transcript, candidate, [])
+        plain = GatekeeperOrchestrator(self.rubrics, GatekeeperConfig(mode=Mode.OBSERVE)).evaluate(transcript, candidate, [])
+        focused_td = next(r.quick_score for r in focused.per_rubric if r.rubric_id == 'TD_Taakdichtheid')
+        plain_td = next(r.quick_score for r in plain.per_rubric if r.rubric_id == 'TD_Taakdichtheid')
+        self.assertGreater(focused_td, plain_td)
+
+    def test_engine_advances_cycle_after_successful_turn(self):
+        cfg = GatekeeperConfig(mode=Mode.OBSERVE, cycle_enabled=True, cycle_active_phase='P')
+        with tempfile.TemporaryDirectory() as td:
+            trace_path = str(Path(td) / 'trace.jsonl')
+            gate = EATRuntimeGatekeeper(rubric_dir='rubrics', config=cfg, trace_path=trace_path)
+            gate.evaluate_turn('cycle-session', 't1', [], 'We werken stap voor stap.', [])
+        self.assertEqual(cfg.cycle_active_phase, 'TD')
+
+    def test_trace_aggregator_session_summary(self):
+        from eatme.tracing import TraceAggregator
+        with tempfile.TemporaryDirectory() as td:
+            trace_path = str(Path(td) / 'trace.jsonl')
+            gate = EATRuntimeGatekeeper(rubric_dir='rubrics', config=GatekeeperConfig(mode=Mode.OBSERVE), trace_path=trace_path)
+            gate.evaluate_turn('agg-session', 't1', [], 'Bron: onbekend 2024.', [])
+            summary = TraceAggregator(trace_path).session_summary('agg-session')
+        self.assertEqual(summary['session_id'], 'agg-session')
+        self.assertEqual(summary['turns'], 1)
+        self.assertIn('E_EpistemischeBetrouwbaarheid', summary['rubric_averages'])
 
 
 if __name__ == '__main__':
